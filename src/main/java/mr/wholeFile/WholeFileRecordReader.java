@@ -37,14 +37,13 @@ public class WholeFileRecordReader implements RecordReader<NullWritable, BytesWr
         int fileLength = (int)split.getLength();
 		byte[] fileArray = new byte[fileLength];
 
-        byte[] result = ArrayUtils.addAll(fileNameWithDelim, fileArray);
-
 		FileSystem  fs = FileSystem.get(conf);
 		FSDataInputStream in = null; 
 		try {
 			in = fs.open( split.getPath());
-			IOUtils.readFully(in, result, fileNameWithDelimLength, fileLength);
-			value.set(result, 0, fileLength);
+			IOUtils.readFully(in, fileArray, 0, fileLength);
+            byte[] result = ArrayUtils.addAll(fileNameWithDelim, fileArray);
+			value.set(result, 0, result.length);
 			
 		} finally {
 			IOUtils.closeStream(in);
