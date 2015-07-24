@@ -2,7 +2,6 @@ package mr.wholeFile;
 
 import java.io.IOException;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -31,9 +30,6 @@ public class WholeFileRecordReader implements RecordReader<NullWritable, BytesWr
 			return false;
 		}
 
-        byte[] fileNameWithDelim = (split.getPath().getName() + "\001").getBytes();
-        int fileNameWithDelimLength = fileNameWithDelim.length;
-
         int fileLength = (int)split.getLength();
 		byte[] fileArray = new byte[fileLength];
 
@@ -42,8 +38,7 @@ public class WholeFileRecordReader implements RecordReader<NullWritable, BytesWr
 		try {
 			in = fs.open( split.getPath());
 			IOUtils.readFully(in, fileArray, 0, fileLength);
-            byte[] result = ArrayUtils.addAll(fileNameWithDelim, fileArray);
-			value.set(result, 0, result.length);
+			value.set(fileArray, 0, fileLength);
 			
 		} finally {
 			IOUtils.closeStream(in);
