@@ -41,10 +41,10 @@ public class WholeFileRecordReader implements RecordReader<NullWritable, BytesWr
 
             Map<String, String> m = (Map) JSONValue.parse(IOUtils.toString(in, StandardCharsets.UTF_8));
             String b = new StringBuilder()
-                    .append((m.get("title")     != null) ? m.get("title")   : "N/A").append(hiveDelimiter)
-                    .append((m.get("author")    != null) ? m.get("author")  : "N/A").append(hiveDelimiter)
-                    .append((m.get("published") != null) ? m.get("date")    : "N/A").append(hiveDelimiter)
-                    .append((m.get("content")   != null) ? m.get("content") : "N/A").toString();
+                    .append((m.get("title")     != null) ? m.get("title")       : "N/A").append(hiveDelimiter)
+                    .append((m.get("author")    != null) ? m.get("author")      : "N/A").append(hiveDelimiter)
+                    .append((m.get("published") != null) ? m.get("published")   : "N/A").append(hiveDelimiter)
+                    .append((m.get("content")   != null) ? m.get("content")     : "N/A").toString();
             byte[] results = b.getBytes(StandardCharsets.UTF_8);
 
 			value.set(results, 0, results.length);
