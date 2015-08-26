@@ -1,7 +1,9 @@
 package mr.wholeFile;
 
 import java.io.IOException;
+import java.util.Map;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -11,6 +13,8 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapred.InputSplit;
 import org.apache.hadoop.mapred.RecordReader;
 import org.apache.hadoop.mapred.FileSplit;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.json.simple.JSONValue;
 
 public class WholeFileRecordReader implements RecordReader<NullWritable, BytesWritable> {
 
@@ -18,6 +22,7 @@ public class WholeFileRecordReader implements RecordReader<NullWritable, BytesWr
 	private Configuration conf;
 	
 	private boolean fileProcessed = false;
+    private final String hiveDelimiter = "\001";
 
 	public WholeFileRecordReader(Configuration job, InputSplit split) throws IOException {
 		this.split = (FileSplit) split;
@@ -26,20 +31,26 @@ public class WholeFileRecordReader implements RecordReader<NullWritable, BytesWr
 	
 	@Override
 	public boolean next(NullWritable key, BytesWritable value) throws IOException {
-		if ( fileProcessed ){
-			return false;
-		}
+		if ( fileProcessed ){ return false; }
 
-        int fileLength = (int)split.getLength();
+        int fileLength = (int) split.getLength();
 		byte[] fileArray = new byte[fileLength];
 
 		FileSystem  fs = FileSystem.get(conf);
 		FSDataInputStream in = null; 
 		try {
-			in = fs.open( split.getPath());
+			in = fs.open(split.getPath());
 			IOUtils.readFully(in, fileArray, 0, fileLength);
-			value.set(fileArray, 0, fileLength);
-			
+
+            Map<String, String> m = (Map) JSONValue.parse(fileArray.toString());
+            String b = new StringBuilder()
+                    .append(m.get("title")).append(hiveDelimiter)
+                    .append(m.get("author")).append(hiveDelimiter)
+                    .append(m.get("date")).append(hiveDelimiter)
+                    .append(m.get("content")).toString();
+            byte[] results = b.getBytes();
+
+			value.set(results, 0, results.length);
 		} finally {
 			IOUtils.closeStream(in);
 		}
