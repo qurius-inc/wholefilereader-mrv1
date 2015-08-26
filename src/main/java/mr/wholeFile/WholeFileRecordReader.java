@@ -1,14 +1,15 @@
 package mr.wholeFile;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapred.InputSplit;
 import org.apache.hadoop.mapred.RecordReader;
@@ -33,26 +34,26 @@ public class WholeFileRecordReader implements RecordReader<NullWritable, BytesWr
 	public boolean next(NullWritable key, BytesWritable value) throws IOException {
 		if ( fileProcessed ){ return false; }
 
-        int fileLength = (int) split.getLength();
-		byte[] fileArray = new byte[fileLength];
+//        int fileLength = (int) split.getLength();
+//		byte[] fileArray = new byte[fileLength];
 
 		FileSystem  fs = FileSystem.get(conf);
 		FSDataInputStream in = null; 
 		try {
 			in = fs.open(split.getPath());
-			IOUtils.readFully(in, fileArray, 0, fileLength);
 
-            Map<String, String> m = (Map) JSONValue.parse(fileArray.toString());
+            Map<String, String> m = (Map) JSONValue.parse(IOUtils.toString(in, StandardCharsets.UTF_8));
             String b = new StringBuilder()
                     .append(m.get("title")).append(hiveDelimiter)
                     .append(m.get("author")).append(hiveDelimiter)
                     .append(m.get("date")).append(hiveDelimiter)
                     .append(m.get("content")).toString();
-            byte[] results = b.getBytes();
+            byte[] results = b.getBytes(StandardCharsets.UTF_8);
 
 			value.set(results, 0, results.length);
 		} finally {
-			IOUtils.closeStream(in);
+//			IOUtils.closeStream(in);
+            in.close();
 		}
 		this.fileProcessed = true;
 		return true;
