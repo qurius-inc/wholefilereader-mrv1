@@ -49,7 +49,7 @@ public class WholeFileRecordReader implements RecordReader<NullWritable, BytesWr
 
 			value.set(results, 0, results.length);
 		} finally {
-            in.close();
+//            in.close();
 		}
 		this.fileProcessed = true;
 		return true;
